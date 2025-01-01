@@ -1,0 +1,77 @@
+local inputservice = game:GetService("UserInputService")
+local tweenservice = game:GetService("TweenService")
+local soundservice = game:GetService("SoundService")
+
+local soundprompt = Instance.new("Sound",soundservice)
+soundprompt.SoundId = "rbxassetid://358280695"
+
+local module = {}
+local queue = {}
+local isprog = {["Prompt"] = false}
+
+function module.TextPrompt(NPCName:string, Message:string,PlayerGui)
+	task.spawn(function()
+		if not PlayerGui:FindFirstChild("ScreenGui") then
+			PlayerGui:WaitForChild("ScreenGui")
+		end
+		if isprog.Prompt == true then
+			queue[#queue+1] = {["Message"] = Message,["NPCName"] = NPCName}
+			return
+		end
+		isprog.Prompt = true
+		if PlayerGui.ScreenGui.Prompt.Visible == false then
+			PlayerGui.ScreenGui.Prompt.Position = UDim2.fromScale(0.5,1.4)
+		end
+
+		if NPCName then
+			PlayerGui.ScreenGui.Prompt.NpcName.Text = NPCName
+		else
+			PlayerGui.ScreenGui.Prompt.NpcName.Text = ""
+		end
+
+
+		PlayerGui.ScreenGui.Prompt.Visible = true
+
+		tweenservice:Create(PlayerGui.ScreenGui.Prompt,TweenInfo.new(0.85,Enum.EasingStyle.Back,Enum.EasingDirection.Out,0,false),{Position = UDim2.fromScale(0.5,0.8)}):Play()
+
+		for i=1,Message:len() do
+			if soundprompt.IsPlaying then
+				soundprompt.TimePosition = 0
+			end
+			PlayerGui.ScreenGui.Prompt.Message.Text = string.sub(Message, 1, i)
+			soundprompt:Play()
+			task.wait(0.083)
+		end
+
+		local clicked = false
+		local connection
+		connection = inputservice.InputEnded:Connect(function(input, processed)
+			if processed then return end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				clicked = true
+			end
+		end)
+
+		while clicked == false do
+			task.wait()
+		end
+		connection:Disconnect()
+		if #queue > 0 then
+			local nextone = queue[1]
+			table.remove(queue,1)
+			isprog.Prompt = false
+			task.spawn(function()
+				module.TextPrompt(nextone.NPCName, nextone.Message, PlayerGui)
+			end)
+			return
+		else
+			print(queue)
+			local tween = tweenservice:Create(PlayerGui.ScreenGui.Prompt,TweenInfo.new(0.85,Enum.EasingStyle.Back,Enum.EasingDirection.Out,0,false),{Position = UDim2.fromScale(0.5,1.4)} ):Play()
+			task.wait(0.85)
+			PlayerGui.ScreenGui.Prompt.Visible = false
+
+		end
+	end)
+	return
+end
+return module
