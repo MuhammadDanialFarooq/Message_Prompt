@@ -15,10 +15,15 @@ function module.TextPrompt(NPCName:string, Message:string,PlayerGui)
 			PlayerGui:WaitForChild("ScreenGui")
 		end
 		if isprog.Prompt == true then
+			if queue[#queue] and queue[#queue].Message and queue[#queue].Message == Message then return end
 			queue[#queue+1] = {["Message"] = Message,["NPCName"] = NPCName}
 			return
 		end
+
 		isprog.Prompt = true
+
+
+
 		if PlayerGui.ScreenGui.Prompt.Visible == false then
 			PlayerGui.ScreenGui.Prompt.Position = UDim2.fromScale(0.5,1.4)
 		end
@@ -68,6 +73,7 @@ function module.TextPrompt(NPCName:string, Message:string,PlayerGui)
 			print(queue)
 			local tween = tweenservice:Create(PlayerGui.ScreenGui.Prompt,TweenInfo.new(0.85,Enum.EasingStyle.Back,Enum.EasingDirection.Out,0,false),{Position = UDim2.fromScale(0.5,1.4)} ):Play()
 			task.wait(0.85)
+			isprog.Prompt = false
 			PlayerGui.ScreenGui.Prompt.Visible = false
 
 		end
